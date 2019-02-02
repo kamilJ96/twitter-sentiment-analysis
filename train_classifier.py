@@ -39,7 +39,7 @@ def process_tweet(tweet, stop_words):
 stop = open('stop_words.pickle', 'rb')
 stop_words = pickle.load(stop)
 
-with open('fucking_big.csv', 'r', encoding='latin-1') as test_tweets:
+with open('lots_of_tweets.csv', 'r', encoding='latin-1') as test_tweets:
     tweet_reader = csv.reader(test_tweets)
 
     for row in tweet_reader:
