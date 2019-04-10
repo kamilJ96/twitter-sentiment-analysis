@@ -16,6 +16,10 @@ tweets = []
 num_negative = 0
 num_positive = 0
 
+# Create list of stop words (translator removes punctuation)
+translator = str.maketrans('', '', string.punctuation)
+with open('stopwords.txt', 'r') as f:
+    stop_words = [line.rstrip('\n').translate(translator) for line in f]
 
 def process_tweet(tweet, stop_words):
     # Remove URLs
@@ -36,21 +40,14 @@ def process_tweet(tweet, stop_words):
             words.append(word.lower())
     return words
 
-stop = open('stop_words.pickle', 'rb')
-stop_words = pickle.load(stop)
-
-with open('lots_of_tweets.csv', 'r', encoding='latin-1') as test_tweets:
+with open('corpora_short.csv', 'r', encoding='latin-1') as test_tweets:
     tweet_reader = csv.reader(test_tweets)
 
     for row in tweet_reader:
         if row[0] == '0':
-            if num_negative > 50000:
-                continue
             sentiment = 'negative'
             num_negative += 1
         elif row[0] == '4':
-            if num_positive > 50000:
-                continue
             sentiment = 'positive'
             num_positive += 1
         else:
@@ -59,6 +56,7 @@ with open('lots_of_tweets.csv', 'r', encoding='latin-1') as test_tweets:
         tweets.append((words, sentiment))
 
 
+# Return a list of all the words without their sentiment
 def get_words_in_tweets(tweets):
     all_words = []
     for (words, sentiment) in tweets:
@@ -66,6 +64,7 @@ def get_words_in_tweets(tweets):
     return all_words
 
 
+# Build a dictionary of each word and its frequency in all the tweets
 def get_word_features(wordlist):
     wordlist = nltk.FreqDist(wordlist)
     word_features = wordlist.keys()
@@ -75,6 +74,7 @@ def get_word_features(wordlist):
 word_features = get_word_features(get_words_in_tweets(tweets))
 
 
+# Builds a set based on the word features and their associated sentiment
 def extract_features(document):
     document_words = set(document)
     features = {}
@@ -82,12 +82,12 @@ def extract_features(document):
         features['contains(%s)' % word] = (word in document_words)
     return features
 
+print("Apply features\n")
 training_set = nltk.classify.apply_features(extract_features, tweets)
+print("Train classifier\n")
 classifier = nltk.NaiveBayesClassifier.train(training_set)
 f = open('my_classifier.pickle', 'wb')
 pickle.dump(classifier, f)
 f.close()
 
-f = open('my_features.pickle', 'wb')
-pickle.dump(list(word_features), f)
-f.close()
+f = open('my_features.pickle', 'wb') pickle.dump(list(word_features), f) f.close()
